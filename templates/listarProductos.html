@@ -1,0 +1,39 @@
+{% extends 'index.html' %} 
+
+{% block encabezado %}
+    {%include 'encabezado.html'%}
+{% endblock %}
+
+{% block contenido %}
+  <div>
+    <button class='btn btn-success text-center'>Agregar</button>
+  </div>
+  <div>
+    <table class="table table-bordered w-75 text-center">
+        <thead>
+            <tr class="bg-primary">
+                <th>Codigo</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Categoria</th>
+                <th>Foto</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+  </div>
+{% endblock %}
+
+{% block piePagina %}
+    {%include 'piePagina.html'%}
+{% endblock %}
