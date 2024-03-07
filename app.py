@@ -13,6 +13,7 @@ miConexion=pymongo.MongoClient('mongodb://localhost:27017')
 # creo la bese de datos y la coleccion productos
 baseDatos=miConexion['GestionProductos']
 productos=baseDatos['productos']
+categorias=baseDatos['categorias']
 
 
 # importo la carpeta llamada controlador y su archivo que esta en mi proyecto
