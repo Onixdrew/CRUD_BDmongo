@@ -34,19 +34,19 @@ def TablaProductos():
     emailLogin = request.form["correo"]
     password = request.form["contraseña"]
     user=usuarios.find()
+    
 
-    for e in user:
-        email = e['correo']
-        contraseña = e['contraseña']
-
-        if email == emailLogin and contraseña == password:
+    for u in user:
+        if u['correo'] == emailLogin and u['contraseña'] == password:
             estado = True
+            mensaje2 = f'Bienvenido {u["nombre"]}'
             break  # Termina el bucle si encuentra coincidencia
 
-    if  estado:
-        mensaje2=f'Bienvenido {user['nombre']}'
+    if estado:
         return render_template('listarProductos.html', mensaje2=mensaje2)
-    
+    else:
+        mensaje2 = 'Correo o contraseña incorrectos'
+        return render_template('login.html', mensaje2=mensaje2)
         
         
 
