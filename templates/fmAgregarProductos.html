@@ -1,47 +1,79 @@
+{% extends 'index.html' %} {% block encabezado %} {%include 'encabezado.html'%}
+{% endblock %} {% block contenido %}
 
-{% extends 'index.html' %} 
-
-{% block encabezado %} 
-  {%include 'encabezado.html'%}
-{% endblock %} 
-
-{% block contenido %}
-
-  <form id="frmproducto" action="/agregarProducto" enctype="multipart/form-data">
-      <div class="form-group">
-        <label for="codigo">código:</label>
-        <input type="number" class="form-control" id="idCodigo" required>
-      </div>
-      <div class="form-group">
-        <label for="nombre">Nombre:</label>
-        <input type="text" class="form-control"  id="idNombre" required>
-      </div>
-      <div class="form-group">
-        <label for="precio">Precio:</label>
-        <input type="number" class="form-control "  id="idPrecio" required>
-      </div>
-      <div class="form-group">
-        <label for="categoria">Categoria:</label>
-          <select type="text" class="form-control"  name="cbCategoria" id="idCategoria" required>
-              <option value="">Seleccione</option>
-              {% for c in categorias%}
-              <option value=""></option>
-              {% endfor%}
-          </select>
-      </div>
-      <div class="form-group">
-        <label for="foto">Foto (jpg):</label>
-        <input type="file" name="fileFoto" class="form-control"  id="idFoto" onchange=" visualizarFoto(event)" required>
-      </div>
-      <div id="imagenProducto">
-          <img src="" alt="">
-      </div>
+<form
+  method="post"
+  id="frmproducto"
+  action="/agregarProducto"
+  enctype="multipart/form-data"
+> 
+  <h1>{{mensaje}}</h1>
+  <div class="form-group">
+    <label for="codigo">código:</label>
+    <input
+      type="number"
+      class="form-control"
+      name="codigo"
+      id="idCodigo"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="nombre">Nombre:</label>
+    <input
+      type="text"
+      class="form-control"
+      name="nombre"
+      id="idNombre"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="precio">Precio:</label>
+    <input
+      type="number"
+      class="form-control"
+      name="precio"
+      id="idPrecio"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="categoria">Categoria:</label>
+    <select
+      type="text"
+      name="categoria"
+      class="form-control"
+      id="idCategoria"
+      required
+    >
+      <option value="">seleccione la categoria</option>
+      {% for categoria in categorias %}
+      <option value="{{categoria['_id']}}">{{categoria['nombre']}}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="foto">Foto (jpg):</label>
+    <input
+      type="file"
+      name="fileFoto"
+      class="form-control"
+      id="idFoto"
+      onchange=" visualizarFoto(event)"
       
-    <div class="">
-          <button type="button" onclick="{agregarProducto()}" class="btn btn-primary">Agregar</button>
-          <button type="submit" class="btn btn-primary">Cancelar</button>
-    </div>
-  </form>
+    />
+  </div>
+  <div id="imagenProducto" >
+    <img src="" alt="" />
+  </div>
+
+  <div class="">
+    <button type="submit"  class="btn btn-primary">
+      Agregar
+    </button>
+    <button type="submit" class="btn btn-primary">Cancelar</button>
+  </div>
+</form>
 
 {% endblock %}
-

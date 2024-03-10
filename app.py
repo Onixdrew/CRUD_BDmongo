@@ -1,6 +1,7 @@
 from flask import Flask
 import pymongo
 
+
 # crear aplicacio
 app =Flask(__name__)
 
@@ -14,11 +15,12 @@ miConexion=pymongo.MongoClient('mongodb://localhost:27017')
 baseDatos=miConexion['GestionProductos']
 productos=baseDatos['productos']
 categorias=baseDatos['categorias']
+usuarios=baseDatos['usuarios']
 
 
-# importo la carpeta llamada controlador y su archivo que esta en mi proyecto
+# importo la carpeta llamada controlador y al archivo que contiene
 from controlador.productocontroller import *
 
 # arranco la aplicacion
 if __name__=='__main__':
-    app.run(port=5000, debug=True)
+    app.run(port=3000, debug=True)

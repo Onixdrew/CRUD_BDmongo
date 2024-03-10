@@ -1,10 +1,12 @@
-from app import app, productos,categorias
+from app import app, productos,categorias,usuarios
 from flask import Flask,render_template,request,jsonify
 import pymongo
 import os
 from bson.objectid import ObjectId
 import base64
 from io import BytesIO
+from pymongo.errors import PyMongoError
+
  
  
 # creo la ruta raiz
@@ -12,13 +14,41 @@ from io import BytesIO
 def inicio():
     listaProductos=productos.find()
     listaP=[]
+    print(listaP)
     
     for p in listaProductos:
-        categoria=categorias.find_one({'_id':p['categoria']})
-        p['nombreCategoria']=categoria['nombre']
-        listaP.append(p)
+        categoria=categorias.find_one({'_id':ObjectId(p['categoria'])})
+        if p['categoria'] == categoria['_id']:
+           p['categoria'] = categoria['nombre']
+           listaP.append(p)
     
-    return render_template("listarProductos.html", productos=listaP)
+    return render_template("login.html", productos=listaP, MostrarProductos=listaProductos)
+
+#///////////////////Login/////////////////////////
+
+@app.route('/datosLogin', methods=["POST"])
+def TablaProductos():
+    estado = False
+    mensaje2 = ''
+
+    emailLogin = request.form["correo"]
+    password = request.form["contraseña"]
+    user=usuarios.find()
+
+    for e in user:
+        email = e['correo']
+        contraseña = e['contraseña']
+
+        if email == emailLogin and contraseña == password:
+            estado = True
+            break  # Termina el bucle si encuentra coincidencia
+
+    if  estado:
+        mensaje2=f'Bienvenido {user['nombre']}'
+        return render_template('listarProductos.html', mensaje2=mensaje2)
+    
+        
+        
 
 
 # /////////////////////////////////////////////////////////
@@ -27,7 +57,7 @@ def inicio():
 def vistaAgregarProducto():
     listaCategorias=categorias.find()
     print(type(listaCategorias))
-    return render_template("fmAgregarProductos.html", categorias=listaCategorias)
+    return render_template("fmAgregarProductos.html", categorias=listaCategorias,)
     
 
 
@@ -39,33 +69,35 @@ def agregarProducto():
     mensaje=None
     estado=False
     try:
-        codigo= int(request.form["idCodigo"])
-        nombre=request.form['idNombre']
-        precio=int(request.form['idPrecio'])
-        idCategoria=ObjectId(request.form['idCategoria'])
-        foto=
+        codigo =int(request.form["codigo"]) 
+        nombre = request.form["nombre"]
+        precio = int(request.form["precio"])
+        idCategoria = request.form["categoria"]
+        foto =request.files["fileFoto"]
         
         producto={
             'codigo':codigo,
             'nombre':nombre,
             'precio':precio,
-            'categoria':idCategoria
+            'categoria':ObjectId(idCategoria)
         }
         
         resultado= productos.insert_one(producto)
         if (resultado.acknowledged):
-            idProducto= resultado.inserted_id
-            nombreFoto=f"{idProducto}+.jpg"
+            idProducto= ObjectId(resultado.inserted_id)
+            nombreFoto=f"{idProducto}.jpg"
             # esto guarda la foto en el disco
             foto.save(os.path.join(app.config["UPLOAD_FOLDER"], nombreFoto))
             estado=True
             mensaje='Producto agregado correctamentre.'
         else:
             mensaje='problemas al agregar el producto'
-    except pymongo.errors as error:
+        
+        return render_template('listarProductos.html',estado=estado, mensaje= mensaje)
+    except PyMongoError as error:
         mensaje= error
     
-    return render_template('fmAgregarProductos.html',estado=estado, mensaje= mensaje)
+    
 
 
 # /////////////////////////////////////////////////////////
