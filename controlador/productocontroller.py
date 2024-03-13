@@ -30,20 +30,21 @@ def inicio():
 def TablaProductos():
     estado = False
     mensaje2 = ''
-
     emailLogin = request.form["correo"]
     password = request.form["contraseña"]
     user=usuarios.find()
-    
+    Productos=productos.find()
 
     for u in user:
-        if u['correo'] == emailLogin and u['contraseña'] == password:
+        converContraseña= str(u['contraseña'])
+        if u['correo'] == emailLogin and converContraseña == password:
             estado = True
-            mensaje2 = f'Bienvenido {u["nombre"]}'
+            mensaje2 = f'Bienvenid@ {u["nombre"]}'
             break  # Termina el bucle si encuentra coincidencia
 
     if estado:
-        return render_template('listarProductos.html', mensaje2=mensaje2)
+        
+        return render_template('listarProductos.html', mensaje2=mensaje2, Productos=Productos)
     else:
         mensaje2 = 'Correo o contraseña incorrectos'
         return render_template('login.html', mensaje2=mensaje2)
@@ -56,7 +57,6 @@ def TablaProductos():
 @app.route("/vistaAgregarProducto")
 def vistaAgregarProducto():
     listaCategorias=categorias.find()
-    print(type(listaCategorias))
     return render_template("fmAgregarProductos.html", categorias=listaCategorias,)
     
 
@@ -68,6 +68,7 @@ def vistaAgregarProducto():
 def agregarProducto():
     mensaje=None
     estado=False
+    listaCategorias=categorias.find()
     try:
         codigo =int(request.form["codigo"]) 
         nombre = request.form["nombre"]
@@ -83,6 +84,7 @@ def agregarProducto():
         }
         
         resultado= productos.insert_one(producto)
+        Productos=productos.find()
         if (resultado.acknowledged):
             idProducto= ObjectId(resultado.inserted_id)
             nombreFoto=f"{idProducto}.jpg"
@@ -93,7 +95,7 @@ def agregarProducto():
         else:
             mensaje='problemas al agregar el producto'
         
-        return render_template('listarProductos.html',estado=estado, mensaje= mensaje)
+        return render_template('listarProductos.html',estado=estado, mensaje= mensaje, Productos=Productos, categorias=listaCategorias)
     except PyMongoError as error:
         mensaje= error
     

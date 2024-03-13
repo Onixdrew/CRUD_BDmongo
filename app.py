@@ -9,7 +9,7 @@ app.config["UPLOAD_FOLDER"]="./static/imagenes"
 
 
 # crear conexion
-miConexion=pymongo.MongoClient('mongodb://localhost:27017')
+miConexion=pymongo.MongoClient('mongodb+srv://Andrew:baseAndrew3000@cluster0.qj0gkdd.mongodb.net/')
 
 # creo la bese de datos y la coleccion productos
 baseDatos=miConexion['GestionProductos']
