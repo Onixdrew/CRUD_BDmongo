@@ -1,6 +1,7 @@
 from app import app, productos,categorias,usuarios
-from flask import Flask,render_template,request,jsonify
+from flask import Flask,render_template,request,jsonify,redirect
 import pymongo
+import yagmail
 import os
 from bson.objectid import ObjectId
 import base64
@@ -35,19 +36,32 @@ def TablaProductos():
     user=usuarios.find()
     Productos=productos.find()
 
-    for u in user:
-        converContraseña= str(u['contraseña'])
-        if u['correo'] == emailLogin and converContraseña == password:
-            estado = True
-            mensaje2 = f'Bienvenid@ {u["nombre"]}'
-            break  # Termina el bucle si encuentra coincidencia
-
-    if estado:
+    try:
+        for u in user:
+            converContraseña= str(u['contraseña'])
+            if u['correo'] == emailLogin and converContraseña == password:
+                # Se intenta probar con con un correo y contarseña real, además se agregan a la coleccion
+                # usuarios de la base de datos en mongo atlas para ponder acceder a la aplicacion, porque
+                # las en nuevas actualizaciones de google no aparece la opcion de crear contraseña de aplicacion mencionada
+                # en las guia de apoyo. 
+                email=yagmail.SMTP(emailLogin, open('password.txt').read(), encoding='UTF-8')
+                asunto='Reporte ingreso al sistema'
+                mensaje=f'Me permito informar que el usuario <b>{u['nombre']}</b> ha ingresado al sistema'
+                email.send(to="cesarmcuellar@gmail.com", subject=asunto, contents=mensaje)
+                estado = True
+                mensaje2 = f'Bienvenid@ {u["nombre"]}'
+                break  
+    
+        if estado:
+            
+            return render_template('listarProductos.html', mensaje2=mensaje2, Productos=Productos)
+        else:
+            mensaje2 = 'Correo o contraseña incorrectos'
+            
+    except PyMongoError as error:
+        mensaje2=error
         
-        return render_template('listarProductos.html', mensaje2=mensaje2, Productos=Productos)
-    else:
-        mensaje2 = 'Correo o contraseña incorrectos'
-        return render_template('login.html', mensaje2=mensaje2)
+    return render_template('login.html', mensaje2=mensaje2)
         
         
 
