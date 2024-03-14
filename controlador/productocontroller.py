@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 import base64
 from io import BytesIO
 from pymongo.errors import PyMongoError
-
+import threading
  
  
 # creo la ruta raiz
@@ -31,31 +31,42 @@ def TablaProductos():
     #contraseña de onix7kingdom@gmail.com
     # password='eadtgrufikokctph'
     estado = False
-    mensaje2 = ''
+    mensaje = ''
     emailLogin = request.form["correo"]
     password = request.form["contraseña"]
     user=usuarios.find()
     Productos=productos.find()
+    listCategorias=categorias.find()
 
     try:
         for u in user:
             converContraseña= str(u['contraseña'])
             if u['correo'] == emailLogin and converContraseña == password:
-                # Se intenta probar con con un correo y contarseña real, además se agregan a la coleccion
-                # usuarios de la base de datos en mongo atlas para ponder acceder a la aplicacion, porque
-                # las en nuevas actualizaciones de google no aparece la opcion de crear contraseña de aplicacion mencionada
-                # en las guia de apoyo. 
+           
                 estado = True
-                mensaje2 = f'Bienvenid@ {u["nombre"]}'
+                mensaje = f'Bienvenid@ {u["nombre"]}'
+             
+                #////////// Enviar correo///////////////
+             
                 email=yagmail.SMTP(emailLogin, password, encoding='UTF-8')
                 asunto='Reporte ingreso al sistema'
                 mensaje=f'Me permito informar que el usuario <b>{u['nombre']}</b> ha ingresado al sistema'
                 email.send(to='cesarmcuellar@gmail.com', subject=asunto, contents=mensaje)
+
+                # ////////////// Enviar correo con thread para enviar en eparalelo/////////////
+                
+                # def enviarCorreo(email=None, destinatario=None, asunto=None, mensajeCorreo=None):
+                #     email.send(to=emailLogin, subject=asunto, contents=mensaje)
+                
+                # la funcion thread permite realizar operaciones en paralelo, resive una funcion a realizar y los argumentos
+                # thread=threading,thread(target=enviarCorreo, args=(email,emailLogin,asunto,mensajeCorreo))
+                # thread.start()
+             
                 break  
     
         if estado:
             
-            return render_template('listarProductos.html', mensaje2=mensaje2, Productos=Productos)
+            return render_template('listarProductos.html', mensaje=mensaje, Productos=Productos, listCategorias=listCategorias)
         else:
             mensaje2 = 'Correo o contraseña incorrectos'
             
@@ -83,7 +94,7 @@ def vistaAgregarProducto():
 def agregarProducto():
     mensaje=None
     estado=False
-    listaCategorias=categorias.find()
+    listCategorias=categorias.find()
     try:
         codigo =int(request.form["codigo"]) 
         nombre = request.form["nombre"]
@@ -110,7 +121,7 @@ def agregarProducto():
         else:
             mensaje='problemas al agregar el producto'
         
-        return render_template('listarProductos.html',estado=estado, mensaje= mensaje, Productos=Productos, categorias=listaCategorias)
+        return render_template('listarProductos.html',estado=estado, mensaje= mensaje, Productos=Productos, listCategorias=listCategorias)
     except PyMongoError as error:
         mensaje= error
     
