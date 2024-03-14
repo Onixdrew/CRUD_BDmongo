@@ -28,7 +28,8 @@ def inicio():
 
 @app.route('/datosLogin', methods=["POST"])
 def TablaProductos():
-    # password2='eadtgrufikokctph'
+    #contraseña de onix7kingdom@gmail.com
+    # password='eadtgrufikokctph'
     estado = False
     mensaje2 = ''
     emailLogin = request.form["correo"]
