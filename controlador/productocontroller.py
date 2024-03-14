@@ -1,6 +1,5 @@
 from app import app, productos,categorias,usuarios
-from flask import Flask,render_template,request,jsonify,redirect
-import pymongo
+from flask import render_template,request,jsonify,redirect
 import yagmail
 import os
 from bson.objectid import ObjectId
@@ -29,6 +28,7 @@ def inicio():
 
 @app.route('/datosLogin', methods=["POST"])
 def TablaProductos():
+    # password2='eadtgrufikokctph'
     estado = False
     mensaje2 = ''
     emailLogin = request.form["correo"]
@@ -44,12 +44,12 @@ def TablaProductos():
                 # usuarios de la base de datos en mongo atlas para ponder acceder a la aplicacion, porque
                 # las en nuevas actualizaciones de google no aparece la opcion de crear contraseña de aplicacion mencionada
                 # en las guia de apoyo. 
-                email=yagmail.SMTP(emailLogin, open('password.txt').read(), encoding='UTF-8')
-                asunto='Reporte ingreso al sistema'
-                mensaje=f'Me permito informar que el usuario <b>{u['nombre']}</b> ha ingresado al sistema'
-                email.send(to="cesarmcuellar@gmail.com", subject=asunto, contents=mensaje)
                 estado = True
                 mensaje2 = f'Bienvenid@ {u["nombre"]}'
+                email=yagmail.SMTP(emailLogin, password, encoding='UTF-8')
+                asunto='Reporte ingreso al sistema'
+                mensaje=f'Me permito informar que el usuario <b>{u['nombre']}</b> ha ingresado al sistema'
+                email.send(to=emailLogin, subject=asunto, contents=mensaje)
                 break  
     
         if estado:
@@ -127,6 +127,9 @@ def agregarProducto():
 #         rutaImagen=f"{os.path.join(app.config["UPLOAD_FOLDER"])}/{ producto['_id']}.jpg"   
 #         estado=True
 #         mensaje='Producto agregado correctamentre.'
+#     else:
+#         mensaje='problemas al agregar el producto'
+    
 #     else:
 #         mensaje='problemas al agregar el producto'
     
