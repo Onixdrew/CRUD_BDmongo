@@ -49,7 +49,7 @@ def TablaProductos():
                 email=yagmail.SMTP(emailLogin, password, encoding='UTF-8')
                 asunto='Reporte ingreso al sistema'
                 mensaje=f'Me permito informar que el usuario <b>{u['nombre']}</b> ha ingresado al sistema'
-                email.send(to=emailLogin, subject=asunto, contents=mensaje)
+                email.send(to='cesarmcuellar@gmail.com', subject=asunto, contents=mensaje)
                 break  
     
         if estado:
