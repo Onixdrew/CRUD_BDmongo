@@ -3,6 +3,7 @@
 
 {% endblock %} {% block contenido %}
 <h1 class="text-center text-danger">{{mensaje2}}</h1>
+<h1 class="text-center text-danger">{{mensajeUser}}</h1>
 <section class="gradient-custom">
   <div class="container py-5 h-100">
     <div class="row d-flex justify-content-center align-items-center h-100">
@@ -21,6 +22,7 @@
                   id="typeEmailX"
                   name="correo"
                   class="form-control form-control-lg"
+                  
                 />
                 <label class="form-label" for="typeEmailX">Correo</label>
               </div>
@@ -31,6 +33,7 @@
                   id="typePasswordX"
                   name="contraseña"
                   class="form-control form-control-lg"
+                  
                 />
                 <label class="form-label" for="typePasswordX">Contraseña</label>
               </div>
@@ -59,7 +62,7 @@
             <div>
               <p class="mb-0">
                 No tienes cuenta?
-                <a href="#!" class="text-white-50 fw-bold">Crear cuenta</a>
+                <a href="/mostrarFormLogin" class="text-white-50 fw-bold">Crear cuenta</a>
               </p>
             </div>
           </div>

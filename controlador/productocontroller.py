@@ -12,8 +12,13 @@ import threading
 
      
 # creo la ruta raiz
-@app.route('/')
+@app.route('/', methods=["POST", "GET"])
 def inicio():
+    #obtengo los datos del nuevo usuario creado enviados por la url
+    mensajeUser = request.args.get('mensajeUser')
+    mensaje2= request.args.get('mensaje2')
+    
+    #/////////
     listaProductos=productos.find()
     listaP=[]
     print(listaP)
@@ -24,18 +29,23 @@ def inicio():
            p['categoria'] = categoria['nombre']
            listaP.append(p)
     
-    return render_template("login.html", productos=listaP, MostrarProductos=listaProductos)
+    return render_template("login.html",mensaje2=mensaje2, mensajeUser=mensajeUser, productos=listaP, MostrarProductos=listaProductos)
 
 
-#///////////////////Login/////////////////////////
+#///////////////////Validar Datos del Login/////////////////////////
 
 @app.route('/datosLogin', methods=["POST"])
-def TablaProductos():
+def inicioLogin():
     
     #/////////// USER ///////////
     
     # correo: onix7kingdom@gmail.com
     # password='eadtgrufikokctph'
+
+    #/////////// USER 2 ///////////
+    
+    # correo; onix8kingdom@gmail.com
+    # password='54321'
     
     #//////////////////////
     estado = False
@@ -79,6 +89,7 @@ def TablaProductos():
             mensaje2='Tus productos'
         else:
             mensaje2='No tienes productos'
+            
         if estado:
             return render_template('listarProductos.html', mensaje=mensaje,mensaje2=mensaje2, Productos=Productos, listCategorias=listCategorias)
         else:
@@ -88,11 +99,43 @@ def TablaProductos():
     except PyMongoError as error:
         mensaje2=error
         
-    return render_template('login.html', mensaje2=mensaje2)
-    
+    return redirect(url_for('inicio', mensaje2=mensaje2))
 
 
+#//////////////////// Crear cuenta ///////////////////
+
+@app.route('/mostrarFormLogin', methods=["GET","POST"])
+def mostrarFormLogin():
+    # correo=request.form(['correo'])
+    # contraseña=request.form(['contraseña'])
+    # comprobar=usuarios.find_one({"correo":correo,"contraseña":contraseña})
+    # if not comprobar:
+        # mensaje='Registro exitoso'
+        # usuarios.insert_one({"nombre":request.form(['nombre']),
+        #                             "correo":request.form(['correo']),
+        #                             "contraseña":request.form(['contraseña'])
+        #                             })
+    return render_template('crearCuenta.html')
+
+
+# //////////////// Envio de datos nuevo usuario a db////////////
         
+@app.route('/crearUsuario', methods=["POST","GET"])
+def crearUsuario():
+    mensajeUser=''
+    nombre= request.form['nombre']
+    correo=request.form['correo']
+    contraseña=request.form['contraseña']
+    comprobar=usuarios.find_one({"correo":correo,"contraseña":contraseña})
+    if comprobar:
+        mensajeUser='Ya existe usuario con ese correo'
+    else:
+        mensajeUser='Registro exitoso'
+        #inserto al nuevo usuario en la bd
+        usuarios.insert_one({"nombre":nombre,"correo":correo, "contraseña":contraseña})
+    return redirect(url_for('inicio',mensajeUser=mensajeUser))
+
+
 
 
 # //////////////  vistaAgregarProducto ///////////////////////////////////////////
