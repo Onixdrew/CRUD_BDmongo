@@ -1,5 +1,5 @@
 from app import app, productos,categorias,usuarios
-from flask import render_template,request,jsonify,redirect,url_for
+from flask import render_template,request,jsonify,redirect,url_for,session
 import yagmail
 import os
 from bson.objectid import ObjectId
@@ -17,6 +17,8 @@ def inicio():
     #obtengo los datos del nuevo usuario creado enviados por la url
     mensajeUser = request.args.get('mensajeUser')
     mensaje2= request.args.get('mensaje2')
+    mensaje3= request.args.get('mensaje3')
+    
     
     #/////////
     listaProductos=productos.find()
@@ -29,7 +31,7 @@ def inicio():
            p['categoria'] = categoria['nombre']
            listaP.append(p)
     
-    return render_template("login.html",mensaje2=mensaje2, mensajeUser=mensajeUser, productos=listaP, MostrarProductos=listaProductos)
+    return render_template("login.html",mensaje2=mensaje2,mensaje3=mensaje3, mensajeUser=mensajeUser, productos=listaP, MostrarProductos=listaProductos)
 
 
 #///////////////////Validar Datos del Login/////////////////////////
@@ -63,7 +65,11 @@ def inicioLogin():
             
             # se valida si el usuario existe en la base de datos 
             if u['correo'] == emailLogin and converContraseña == password:
-             
+                
+                # se crea la variable de la sesion
+                session['user']=emailLogin
+                
+                # cambia la variable estado para que renderice la pagina listarProductos
                 estado = True
                 mensaje = f'Bienvenid@ {u["nombre"]}'
                 
@@ -106,15 +112,6 @@ def inicioLogin():
 
 @app.route('/mostrarFormLogin', methods=["GET","POST"])
 def mostrarFormLogin():
-    # correo=request.form(['correo'])
-    # contraseña=request.form(['contraseña'])
-    # comprobar=usuarios.find_one({"correo":correo,"contraseña":contraseña})
-    # if not comprobar:
-        # mensaje='Registro exitoso'
-        # usuarios.insert_one({"nombre":request.form(['nombre']),
-        #                             "correo":request.form(['correo']),
-        #                             "contraseña":request.form(['contraseña'])
-        #                             })
     return render_template('crearCuenta.html')
 
 
@@ -142,146 +139,181 @@ def crearUsuario():
 
 @app.route("/vistaAgregarProducto")
 def vistaAgregarProducto():
-    listaCategorias=categorias.find()
-    mensaje='Agrega un nuevo producto'
-    return render_template("fmAgregarProductos.html", categorias=listaCategorias,mensaje=mensaje)
+    if("user" in session):
+        listaCategorias=categorias.find()
+        mensaje='Agrega un nuevo producto'
+        return render_template("fmAgregarProductos.html", categorias=listaCategorias,mensaje=mensaje)
+    else:
+        mensaje3='Metodo invalido, por favor inicie sesión'
+        return redirect(url_for("inicio",mensaje3=mensaje3))  
     
 
 
 
 # ///////////////// agregarProducto ////////////////////////////////////////
 
-@app.route("/agregarProducto", methods=["POST"])
+@app.route("/agregarProducto", methods=["POST", "GET"])
 def agregarProducto():
-    mensaje=None
-    estado=False
-    listCategorias=categorias.find()
-    try:
-        codigo =int(request.form["codigo"]) 
-        nombre = request.form["nombre"]
-        precio = int(request.form["precio"])
-        idCategoria = request.form["categoria"]
-        foto =request.files["fileFoto"]
-        # idCliente=usuarios.find_one({"correo":})
-        producto={
-            'codigo':codigo,
-            'nombre':nombre,
-            'precio':precio,
-            'categoria':ObjectId(idCategoria)
-        }
-        
-        Productos=productos.find()
-        pBusquedad=productos.find_one({"codigo":codigo})
-        if not pBusquedad:
-            resultado= productos.insert_one(producto)
+    if("user" in session):
+        mensaje=None
+        estado=False
+        listCategorias=categorias.find()
+        try:
+            codigo =int(request.form["codigo"]) 
+            nombre = request.form["nombre"]
+            precio = int(request.form["precio"])
+            idCategoria = request.form["categoria"]
+            foto =request.files["fileFoto"]
+            # idCliente=usuarios.find_one({"correo":})
+            producto={
+                'codigo':codigo,
+                'nombre':nombre,
+                'precio':precio,
+                'categoria':ObjectId(idCategoria)
+            }
             
-            if (resultado.acknowledged):
-                idProducto= ObjectId(resultado.inserted_id)
-                nombreFoto=f"{idProducto}.jpg"
-                # esto guarda la foto en el disco
-                foto.save(os.path.join(app.config["UPLOAD_FOLDER"], nombreFoto))
-                estado=True
-                mensaje='Producto agregado correctamentre.'
+            Productos=productos.find()
+            pBusquedad=productos.find_one({"codigo":codigo})
+            if not pBusquedad:
+                resultado= productos.insert_one(producto)
+                
+                if (resultado.acknowledged):
+                    idProducto= ObjectId(resultado.inserted_id)
+                    nombreFoto=f"{idProducto}.jpg"
+                    # esto guarda la foto en el disco
+                    foto.save(os.path.join(app.config["UPLOAD_FOLDER"], nombreFoto))
+                    estado=True
+                    mensaje='Producto agregado correctamentre.'
+                else:
+                    mensaje='problemas al agregar el producto'
+                
+            if Productos:
+                mensaje='Tus productos'
             else:
-                mensaje='problemas al agregar el producto'
-            
-        if Productos:
-            mensaje='Tus productos'
-        else:
-            mensaje='No tienes productos'
-            
-            
-        return render_template('listarProductos.html',estado=estado, mensaje= mensaje, Productos=Productos, listCategorias=listCategorias)
-    except PyMongoError as error:
-        mensaje= error
+                mensaje='No tienes productos'
+                
+                
+            return render_template('listarProductos.html',estado=estado, mensaje= mensaje, Productos=Productos, listCategorias=listCategorias)
+        except PyMongoError as error:
+            mensaje= error
+    else:
+        mensaje3='Metodo invalido, por favor inicie sesión'
+        return redirect(url_for("inicio",mensaje3=mensaje3))  
+    
     
 # /////////// consultar producto////////////////////
 
 @app.route('/consultar/<codigoP>', methods=['GET'])
 def cosultarPorCodigo(codigoP):
-    estado=False
-    mensaje=None
-    producto=None
-    conver=int(codigoP)
-    try:
-        ResultadoProducto= productos.find_one({'codigo':conver})
-
-    except PyMongoError as error:
-        mensaje=error
-    queryCategoria=categorias.find_one({'_id':ResultadoProducto['categoria']})
-    listaCategorias=categorias.find()
-    return render_template('editarProducto.html', productos=ResultadoProducto,queryCategoria=queryCategoria, listaCategorias=listaCategorias )
-
+    if("user" in session):
+        estado=False
+        mensaje=None
+        producto=None
+        conver=int(codigoP)
+        try:
+            ResultadoProducto= productos.find_one({'codigo':conver})
+    
+        except PyMongoError as error:
+            mensaje=error
+        queryCategoria=categorias.find_one({'_id':ResultadoProducto['categoria']})
+        listaCategorias=categorias.find()
+        return render_template('editarProducto.html', productos=ResultadoProducto,queryCategoria=queryCategoria, listaCategorias=listaCategorias )
+    else:
+        mensaje3='Metodo invalido, por favor inicie sesión'
+        return redirect(url_for("inicio",mensaje3=mensaje3))
+    
 
 #//////////// editar /////////////////////
 
-@app.route('/editar', methods=['POST'])
+@app.route('/editar', methods=['POST',"GET"])
 def editar():
-    estado=False
-    mensaje=None
-    try:
-        codigo =int(request.form["codigo"]) 
-        nombre = request.form["nombre"]
-        precio = int(request.form["precio"])
-        idCategoria = request.form["categoria"]
-        foto =request.files["fileFoto"]
-        # inputHidden= ObjectId(request.files["inputHidden"])
-        
-        producto={
-            'codigo':codigo,
-            'nombre':nombre,
-            'precio':precio,
-            'categoria':ObjectId(idCategoria)
-        }
-        
-        
-        # actualizando la base de datos con el id
-        resultado= productos.update_one({"codigo":codigo},{"$set":producto})
-        
-        if (resultado.acknowledged):
-            if(foto):
-                # nombreFoto= f'{inputHidden}.jpg'
-                foto.save(os.path.join(app.config["UPLOAD_FOLDER"]))
+    if("user" in session):
+        estado=False
+        mensaje=None
+        try:
+            codigo =int(request.form["codigo"]) 
+            nombre = request.form["nombre"]
+            precio = int(request.form["precio"])
+            idCategoria = request.form["categoria"]
+            foto =request.files["fileFoto"]
+            # inputHidden= ObjectId(request.files["inputHidden"])
             
-            mensaje='Producto actualizado correctamentre.'
-        else:
-            mensaje='problemas al actualizar el producto'
-        
-        Productos=productos.find()
-        
-    except PyMongoError as error:
-        mensaje=error
-    return render_template('listarProductos.html', Productos=Productos , mensaje=mensaje)
-
+            producto={
+                'codigo':codigo,
+                'nombre':nombre,
+                'precio':precio,
+                'categoria':ObjectId(idCategoria)
+            }
+            
+            
+            # actualizando la base de datos con el id
+            resultado= productos.update_one({"codigo":codigo},{"$set":producto})
+            
+            if (resultado.acknowledged):
+                if(foto):
+                    # nombreFoto= f'{inputHidden}.jpg'
+                    foto.save(os.path.join(app.config["UPLOAD_FOLDER"]))
+                
+                mensaje='Producto actualizado correctamentre.'
+            else:
+                mensaje='problemas al actualizar el producto'
+            
+            Productos=productos.find()
+            
+        except PyMongoError as error:
+            mensaje=error
+        return render_template('listarProductos.html', Productos=Productos , mensaje=mensaje)
+    else:
+        mensaje3='Metodo invalido, por favor inicie sesión'
+        return redirect(url_for("inicio",mensaje3=mensaje3))
+    
 #////////////////// Eliminar ///////////////////////
 
 @app.route('/eliminar/<codigo>', methods=['GET'])
 def eliminar_producto(codigo):
-    
-    try:
-        # Convertir el código a un entero
-        codigo = int(codigo)
+    if("user" in session):
         
-        # Buscar el producto en la base de datos por su código
-        producto = productos.find_one({"codigo": codigo})
-        prod=productos.find()
-        if producto:
-            # Si se encuentra el producto, eliminarlo de la base de datos
-            productos.delete_one({"codigo": codigo})
-            mensaje = f"El producto con código {codigo} ha sido eliminado exitosamente."
-        
-        if prod:
-            mensaje='Tus productos'
-        else:
-            mensaje='No tienes productos'
+        try:
+            # Convertir el código a un entero
+            codigo = int(codigo)
             
-    except Exception as e:
-        mensaje = f"Error al eliminar el producto: {str(e)}"
+            # Buscar el producto en la base de datos por su código
+            producto = productos.find_one({"codigo": codigo})
+            prod=productos.find()
+            if producto:
+                # Si se encuentra el producto, eliminarlo de la base de datos
+                productos.delete_one({"codigo": codigo})
+                mensaje = f"El producto con código {codigo} ha sido eliminado exitosamente."
+            
+            if prod:
+                mensaje='Tus productos'
+            else:
+                mensaje='No tienes productos'
+                
+        except Exception as e:
+            mensaje = f"Error al eliminar el producto: {str(e)}"
+    
+        # Redireccionar a la página de listar productos con un mensaje
+        return render_template('listarProductos.html', mensaje=mensaje, Productos=prod)
+    else:
+        mensaje3='Metodo invalido, por favor inicie sesión'
+        return redirect(url_for("inicio",mensaje3=mensaje3))
+    
+# ////////////////////// Cerrar sesión ////////////////////////////
 
-    # Redireccionar a la página de listar productos con un mensaje
-    return render_template('listarProductos.html', mensaje=mensaje, Productos=prod)
+@app.route("/salir")
+def salir():
+    # session.clear()
+    
+    # Si la clave 'user' está presente en la sesión, esta función (pop()) la eliminará y devolverá su valor. Si la clave no está presente, devolverá None.
+    session.pop('user', None)
+    
+    # Se establece una variable de sesión para mostrar el mensaje
+    # el cual se validara si es true o false e en scritp del login.thml
+    session['salir'] = True 
+    return redirect('/')
 
-# /////////////////////////////////////////////////////////
+
 
 # @app.route('/agregarProductoJson')
 # def agregarProductoJson():

@@ -2,7 +2,17 @@
 
 
 {% endblock %} {% block contenido %}
+<script>
+  {% if session.get('salir') %}
+      alert("¡Has cerrado sesión con éxito!");
+      {% endif %}
+      {% if session.pop('salir', None) %}
+      setTimeout(function(){ window.location.href = "/"; }, 3000); // Redireccionar después de 3 segundos
+  {% endif %}
+</script>
+
 <h1 class="text-center text-danger">{{mensaje2}}</h1>
+<h1 class="text-center text-danger">{{mensaje3}}</h1>
 <h1 class="text-center text-danger">{{mensajeUser}}</h1>
 <section class="gradient-custom">
   <div class="container py-5 h-100">
