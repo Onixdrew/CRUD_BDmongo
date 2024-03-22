@@ -78,7 +78,8 @@ def inicioLogin():
                 email=yagmail.SMTP(emailLogin, password, encoding='UTF-8')
                 asunto='Reporte ingreso al sistema'
                 mensajeCorreo=f'Me permito informar que el usuario <b>{u['nombre']}</b> ha ingresado al sistema'
-                # email.send(to=emailLogin, subject=asunto, contents=mensajeCorreo)
+                # se envia un correo a la persona que ingresa a la app
+                email.send(to=emailLogin, subject=asunto, contents=mensajeCorreo)
                 
                 # ////////////// Enviar correo con thread para enviar en eparalelo/////////////
                 
