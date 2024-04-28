@@ -9,7 +9,7 @@ app.config["UPLOAD_FOLDER"]="./static/imagenes"
 
 
 # crear conexion
-miConexion=pymongo.MongoClient('mongodb+srv://Andrew:6yRZzkGdCsFPGPs0@cluster0.qj0gkdd.mongodb.net/')
+miConexion=pymongo.MongoClient('mongodb+srv://Andrew:BEyKKt0ai4ArRqBQ@cluster0.qj0gkdd.mongodb.net/FaceID?retryWrites=true&w=majority&appName=Cluster0')
 
 #Creo clave para manejar la sesion
 app.secret_key="codeUltronixSecure"

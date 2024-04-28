@@ -75,11 +75,11 @@ def inicioLogin():
                 
                 #////////// Enviar correo///////////////
                 
-                email=yagmail.SMTP(emailLogin, password, encoding='UTF-8')
-                asunto='Reporte ingreso al sistema'
-                mensajeCorreo=f'Me permito informar que el usuario <b>{u['nombre']}</b> ha ingresado al sistema'
+                # email=yagmail.SMTP(emailLogin, password, encoding='UTF-8')
+                # asunto='Reporte ingreso al sistema'
+                # mensajeCorreo=f'Me permito informar que el usuario <b>{u['nombre']}</b> ha ingresado al sistema'
                 # se envia un correo a la persona que ingresa a la app
-                email.send(to=emailLogin, subject=asunto, contents=mensajeCorreo)
+                # email.send(to=emailLogin, subject=asunto, contents=mensajeCorreo)
                 
                 # ////////////// Enviar correo con thread para enviar en eparalelo/////////////
                 
@@ -166,14 +166,19 @@ def agregarProducto():
             idCategoria = request.form["categoria"]
             foto =request.files["fileFoto"]
             # idCliente=usuarios.find_one({"correo":})
+            
+                
             producto={
                 'codigo':codigo,
                 'nombre':nombre,
                 'precio':precio,
-                'categoria':ObjectId(idCategoria)
+                'categoria':ObjectId(idCategoria),
+      
             }
             
+            # /////////////// listar productos decodificados
             Productos=productos.find()
+              
             pBusquedad=productos.find_one({"codigo":codigo})
             if not pBusquedad:
                 resultado= productos.insert_one(producto)
